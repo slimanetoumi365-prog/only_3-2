@@ -9,15 +9,15 @@ from urllib3.util.retry import Retry
 
 # --- Configuration ---
 RAW_SYMBOLS = """
-0G 1000CAT 1000CHEEMS 1000SATS 1INCH 1MBABYDOGE 2Z AAVE ACE ACH ACM ACT ACX ADA ADX AEVO AGLD AIGENSYN AI AIXBT ALGO ALICE ALLO ALPINE ALT AMP ANIME ANKR APE API3 APT ARB ARKM ARK ARPA AR ASR ASTER ASTR ATM ATOM AT AUCTION AUDIO A AVA AVAX AVNT AWE AXL AXS BABY BANANAS31 BANANA BAND BANK BARD BAR BAT BB BCH BEAMX BEL BERA BICO BIGTIME BIO BLUR BMT BNB BNSOL BNT BOME BONK BREV BROCCOLI714 C98 CAKE CATI CELO CELR CETUS CFG CFX CGPT CHIP CHR CHZ CITY CKB COMP COOKIE COTI COW CRV CTK CTSI C CVC CVX CYBER DASH DCR DEXE DGB DIA DODO DOGE DOGS DOLO DOT DUSK DYDX DYM EDEN EDU EGLD EIGEN ENA ENJ ENSO ENS EPIC ERA ESP ETC EUL FET FF FIDA FIL FLOKI FLOW FLUX FOGO FORM FRAX FTT F GALA GAS GENIUS GIGGLE GLMR GLM GMT GMX GNO GNS GPS GRT GTC GUN G HAEDAL HBAR HEI HEMI HFT HIVE HMSTR HOLO HOME HOT HUMA HYPER ICP ICX ID ILV IMX INIT INJ IOST IOTA IOTX IO IQ JASMY JOE JST JTO JUP JUV KAIA KAITO KAT KAVA KERNEL KGST KITE KMNO KNC KSM LA LAYER LAZIO LDO LINEA LINK LISTA LPT LQTY LSK LTC LUMIA LUNA LUNC MAGIC MANA MANTA MANTRA MASK MAV MBL MEGA MEME METIS MET ME MINA MIRA MITO MMT MORPHO MOVE MOVR MTL MUBARAK NEAR NEIRO NEO NEWT NEXO NIGHT NIL NMR NOM NOT NXPC OGN OG ONDO ONE ONG ONT OPEN OPG OPN OP ORCA ORDI OSMO PARTI PENDLE PENGU PEOPLE PEPE PHA PIVX PIXEL PLUME PNUT POL POLYX PORTAL PORTO POWR PROM PROVE PSG PUMP PUNDIX PYR PYTH QI QKC QNT QTUM QUICK RAD RARE RAY RE RED RENDER REQ RESOLV REZ RIF RLC ROBO RONIN ROSE RPL RSR RUNE RVN SAGA SAHARA SAND SANTOS SAPIEN SCRT SCR SC SEI SENT SFP SHELL SHIB SIGN SKL SKY SLP SNX SOL SOLV SOMI SOPH SPELL SPK SSV STEEM STG STORJ STO STRAX STRK STX SUI SUN SUPER S SUSHI SXT SYN SYRUP TAO TFUEL THETA THE TIA TKO TLM TNSR TON TOWNS TRB TREE TRUMP TRX TST TURBO TURTLE T TUT TWT UMA UNI USUAL U VANA VANRY VELODROME VET VIC VIRTUAL VTHO WAL WAXP WCT WIF WIN WLD WLFI WOO W XAI XEC XLM XNO XPL XRP XTZ XVG XVS YB YFI YGG ZAMA ZBT ZEC ZEN ZIL ZKC ZKP ZK ZRO ZRX
+0G 1000CAT 1000CHEEMS 1000SATS 1INCH 1MBABYDOGE 2Z AAVE ACE ACH ACM ACT ACX ADA ADX AEVO AGLD AIGENSYN AI AIXBT ALCX ALGO ALICE ALLO ALPINE ALT AMP ANIME ANKR APE API3 APT ARB ARDR ARKM ARK ARPA AR ASR ASTER ASTR ATM ATOM AT AUCTION AUDIO A AVA AVAX AVNT AWE AXL AXS BABY BANANAS31 BANANA BAND BANK BARD BAR BAT BB BCH BEAMX BEL BERA BICO BIGTIME BIO BLUR BMT BNB BNSOL BNT BOME BONK BREV BROCCOLI714 C98 CAKE CATI CELO CELR CETUS CFG CFX CGPT CHIP CHR CHZ CITY CKB COMP COOKIE COTI COW CRV CTK CTSI C CVC CVX CYBER DASH DCR DEXE DGB DIA DODO DOGE DOGS DOLO DOT DUSK DYDX DYM EDEN EDU EGLD EIGEN ENA ENJ ENSO ENS EPIC ERA ESP ETC EUL FET FF FIDA FIL FLOKI FLOW FLUX FOGO FORM FRAX FTT F GALA GAS GENIUS GIGGLE GLMR GLM GMT GMX GNO GNS GPS GRT GTC GUN G HAEDAL HBAR HEI HEMI HFT HIVE HMSTR HOLO HOME HOT HUMA HYPER ICP ICX ID ILV IMX INIT INJ IOST IOTA IOTX IO IQ JASMY JOE JST JTO JUP JUV KAIA KAITO KAT KAVA KERNEL KGST KITE KMNO KNC KSM LA LAYER LAZIO LDO LINEA LINK LISTA LPT LQTY LSK LTC LUMIA LUNA LUNC MAGIC MANA MANTA MANTRA MASK MAV MBL MEGA MEME METIS MET ME MINA MIRA MITO MMT MORPHO MOVE MOVR MTL MUBARAK NEAR NEIRO NEO NEWT NEXO NFP NIGHT NIL NMR NOM NOT NXPC OGN OG ONDO ONE ONG ONT OPEN OPG OPN OP ORCA ORDI OSMO PARTI PENDLE PENGU PEOPLE PEPE PHA PIVX PIXEL PLUME PNUT POL POLYX POND PORTAL PORTO POWR PROM PROVE PSG PUMP PUNDIX PYR PYTH QI QKC QNT QTUM QUICK RAD RARE RAY RE RED RENDER REQ RESOLV REZ RIF RLC ROBO RONIN ROSE RPL RSR RUNE RVN SAGA SAHARA SAND SANTOS SAPIEN SCRT SCR SC SEI SENT SFP SHELL SHIB SIGN SKL SKY SLP SNX SOL SOLV SOMI SOPH SPELL SPK SSV STEEM STG STORJ STO STRAX STRK STX SUI SUN SUPER S SUSHI SXT SYN SYRUP TAO TFUEL THETA THE TIA TKO TLM TNSR TON TOWNS TRB TREE TRUMP TRX TST TURBO TURTLE T TUT TWT UMA UNI USUAL U VANA VANRY VELODROME VET VIC VIRTUAL VTHO WAL WAXP WCT WIF WIN WLD WLFI WOO W XAI XEC XLM XNO XPL XRP XTZ XVG XVS YB YFI YGG ZAMA ZBT ZEC ZEN ZIL ZKC ZKP ZK ZRO ZRX
 """
 
-TELEGRAM_BOT_TOKEN = '7913078821:AAH_jUTHXlFx66daqBkYY7mKw7UZnwpp_A0'
+TELEGRAM_BOT_TOKEN = '8506264349:AAE2mayI7IdJOFob3_sZoBK0-ogs45sMIJQ'
 TELEGRAM_CHAT_ID = '1692583809'
 
-ALERTED_FILE = "alerted_coins.json"
+ALERTED_FILE = "alerted_coins_3.json"
 
-PC_ALERT = 1.9
+PC_ALERT = 1.99
 
 SYMBOLS = [s.strip() + "USDT" for s in RAW_SYMBOLS.split() if s.strip()]
 
@@ -72,7 +72,7 @@ def seconds_until_next_15min() -> float:
     return (target - now).total_seconds()
 
 
-def count_rising_volumes(sym: str):
+def scan_symbol(sym: str):
     try:
         resp = session.get(
             "https://api.binance.com/api/v3/klines",
@@ -81,7 +81,7 @@ def count_rising_volumes(sym: str):
         )
         resp.raise_for_status()
         data = resp.json()
-        if len(data) < 5:
+        if len(data) < 4:
             return None
 
         closed = data[:-1]
@@ -94,7 +94,8 @@ def count_rising_volumes(sym: str):
             else:
                 break
 
-        if count < 4:
+        # Exactly 3 consecutive rising volumes — not 4, not 5
+        if count != 3:
             return None
 
         streak = closed[-count:]
@@ -105,73 +106,36 @@ def count_rising_volumes(sym: str):
         streak_ratio = volumes[-1] / volumes[-count] if volumes[-count] > 0 else 0
 
         close_p = float(last[4])
-        open_p = float(last[1])
-        high_p = float(last[2])
-        low_p = float(last[3])
-        prev_close = float(prev[4])  # previous candle close
-
-        # % change from previous candle close (matches Binance chart)
+        prev_close = float(prev[4])
         pc = ((close_p - prev_close) / prev_close) * 100
 
         if pc < PC_ALERT:
             return None
 
-        # Body % of full range (still uses candle open/close)
-        full_range = high_p - low_p
-        body = abs(close_p - open_p)
-        body_pct = (body / full_range * 100) if full_range > 0 else 0
-
-        # Previous candle color
-        prev_open = float(prev[1])
-        prev_color = "🟢" if float(prev[4]) >= prev_open else "🔴"
-
-        # Green candles in streak
         green_count = sum(1 for c in streak if float(c[4]) >= float(c[1]))
 
-        # 24h ticker
         day_pc = None
-        high_24h = None
-        low_24h = None
-        vol_24h_usdt = None
-        vs_avg = None
-
         try:
-            ticker_resp = session.get(
-                "https://api.binance.com/api/v3/ticker/24hr",
-                params={"symbol": sym},
+            day_resp = session.get(
+                "https://api.binance.com/api/v3/klines",
+                params={"symbol": sym, "interval": "1d", "limit": 2},
                 timeout=5
             )
-            ticker_resp.raise_for_status()
-            ticker = ticker_resp.json()
-            high_24h = float(ticker["highPrice"])
-            low_24h = float(ticker["lowPrice"])
-            vol_24h_usdt = float(ticker["quoteVolume"])
-            open_24h = float(ticker["openPrice"])
-            day_pc = ((close_p - open_24h) / open_24h) * 100
-            avg_15m_vol_usdt = vol_24h_usdt / 96
-            current_15m_vol_usdt = float(last[5]) * close_p
-            vs_avg = current_15m_vol_usdt / avg_15m_vol_usdt if avg_15m_vol_usdt > 0 else 0
+            day_resp.raise_for_status()
+            day_data = day_resp.json()
+            prev_day_close = float(day_data[-2][4])
+            day_pc = ((close_p - prev_day_close) / prev_day_close) * 100
         except:
             pass
 
-        dist_high = ((close_p - high_24h) / high_24h * 100) if high_24h else None
-        dist_low = ((close_p - low_24h) / low_24h * 100) if low_24h else None
-
         return {
             "sym": sym.replace("USDT", ""),
-            "count": count,
             "close": close_p,
             "pc": pc,
             "day_pc": day_pc,
             "vol_ratio": vol_ratio,
             "streak_ratio": streak_ratio,
-            "body_pct": body_pct,
-            "prev_color": prev_color,
             "green_count": green_count,
-            "vol_24h_usdt": vol_24h_usdt,
-            "vs_avg": vs_avg,
-            "dist_high": dist_high,
-            "dist_low": dist_low,
         }
 
     except Exception as e:
@@ -179,18 +143,8 @@ def count_rising_volumes(sym: str):
         return None
 
 
-def fmt_vol(v):
-    if v is None:
-        return "N/A"
-    if v >= 1_000_000:
-        return f"${v/1_000_000:.1f}M"
-    if v >= 1_000:
-        return f"${v/1_000:.0f}K"
-    return f"${v:.0f}"
-
-
 def main():
-    print("🚀 Starting Rising Volume Scanner (15min)...")
+    print("🚀 Starting Exact-3 Streak Scanner (15min)...")
     alerted = load_json(ALERTED_FILE)
     prev_scan_syms = set()
 
@@ -209,26 +163,28 @@ def main():
             results = []
 
             with ThreadPoolExecutor(max_workers=100) as executor:
-                futures = {executor.submit(count_rising_volumes, sym): sym for sym in SYMBOLS}
+                futures = {executor.submit(scan_symbol, sym): sym for sym in SYMBOLS}
                 for future in as_completed(futures):
                     result = future.result()
                     if result:
                         sym = result["sym"]
-                        count = result["count"]
 
-                        last_alerted_count = alerted.get(sym, {}).get("count", 0)
                         last_alerted_ts = alerted.get(sym, {}).get("ts", 0)
-
                         if now_ts - last_alerted_ts > 2 * 3600:
-                            last_alerted_count = 0
+                            pass  # reset allowed
 
-                        if count > last_alerted_count:
-                            if sym in prev_scan_syms:
-                                print(f"⏭ Skipping {sym} — consecutive scan")
-                                alerted[sym] = {"count": count, "ts": now_ts}
-                                continue
-                            results.append(result)
-                            alerted[sym] = {"count": count, "ts": now_ts}
+                        # Skip if sent last scan (consecutive)
+                        if sym in prev_scan_syms:
+                            print(f"⏭ Skipping {sym} — consecutive scan")
+                            alerted[sym] = {"ts": now_ts}
+                            continue
+
+                        # Skip if alerted within last 2h
+                        if now_ts - last_alerted_ts < 2 * 3600:
+                            continue
+
+                        results.append(result)
+                        alerted[sym] = {"ts": now_ts}
 
             print(f"⚡ Scan done in {time.time() - t0:.1f}s")
 
@@ -240,15 +196,9 @@ def main():
                 for c in results:
                     pc_str = f"{c['pc']:+.2f}%"
                     day_str = f"{c['day_pc']:+.2f}%" if c["day_pc"] is not None else "N/A"
-                    dist_high_str = f"{c['dist_high']:+.1f}%" if c["dist_high"] is not None else "N/A"
-                    dist_low_str = f"+{c['dist_low']:.1f}%" if c["dist_low"] is not None else "N/A"
-                    vs_avg_str = f"x{c['vs_avg']:.1f}" if c["vs_avg"] is not None else "N/A"
-
                     lines.append(
-                        f"🚀 {c['sym']} 💰{c['close']} 📈{pc_str} 📅{day_str} x{c['vol_ratio']:.1f} [{c['count']}]\n"
-                        f"🕯 prev: {c['prev_color']} | body: {c['body_pct']:.0f}% | greens: {c['green_count']}/{c['count']} | streak: x{c['streak_ratio']:.1f}\n"
-                        f"📊 vol24h: {fmt_vol(c['vol_24h_usdt'])} | vs avg: {vs_avg_str}\n"
-                        f"📉 {dist_high_str} from 24h high | {dist_low_str} from 24h low"
+                        f"🚀 {c['sym']} 💰{c['close']} 📈{pc_str} x{c['vol_ratio']:.1f}\n"
+                        f"📅{day_str} greens: {c['green_count']}/3 streak: x{c['streak_ratio']:.1f}"
                     )
                     lines.append("")
 
