@@ -107,26 +107,33 @@ def scan_symbol(sym: str):
         if len(data) < 16:
             return None
 
-        last_closed = data[-2]
-        prev_closed = data[-3]
+        # EXCLUDE currently forming candle - use only CLOSED candles
+        closed = data[:-1]
         
-        open_price = float(last_closed[1])
-        close_price = float(last_closed[4])
-        volume = float(last_closed[5])
-        prev_volume = float(prev_closed[5])
+        # Get the last two CLOSED candles for percentage calculation
+        last = closed[-1]
+        prev = closed[-2]
         
-        is_green = close_price > open_price
-        candle_pc = ((close_price - open_price) / open_price) * 100 if open_price > 0 else 0
+        # Extract close prices from CLOSED candles only
+        close_p = float(last[4])
+        prev_close = float(prev[4])
+        volume = float(last[5])
+        prev_volume = float(prev[5])
         
-        if not (is_green and candle_pc >= MIN_CANDLE_PC):
+        # Calculate percentage using CLOSED candle closes (same as original)
+        pc = ((close_p - prev_close) / prev_close) * 100
+        
+        if pc < MIN_CANDLE_PC:
             return None
         
-        closes = [float(c[4]) for c in data[:-1]]
+        # Calculate RSI using the SAME CLOSED candles (same timing as original)
+        closes = [float(c[4]) for c in closed]
         rsi = calculate_rsi_wilders(closes, 14)
         
-        if len(data) >= 26:
-            prev_24h_close = float(data[-26][4])
-            change_24h = ((close_price - prev_24h_close) / prev_24h_close) * 100 if prev_24h_close > 0 else 0
+        # Calculate 24h change using CLOSED candles
+        if len(closed) >= 25:
+            prev_24h_close = float(closed[-25][4])
+            change_24h = ((close_p - prev_24h_close) / prev_24h_close) * 100 if prev_24h_close > 0 else 0
         else:
             change_24h = 0.0
             
@@ -135,9 +142,9 @@ def scan_symbol(sym: str):
         return {
             "sym": sym.replace("USDT", ""),
             "full_sym": sym,
-            "close": close_price,
-            "open": open_price,
-            "candle_pc": candle_pc,
+            "close": close_p,
+            "prev_close": prev_close,
+            "pc": pc,
             "vol_ratio": vol_ratio,
             "change_24h": change_24h,
             "rsi": rsi,
@@ -186,11 +193,11 @@ def main():
                 if sym in tracked:
                     tracked[sym]["alert_count"] += 1
                     
-                    first_open = tracked[sym]["first_candle_open"]
-                    first_pc = tracked[sym]["first_candle_pc"]
+                    first_prev_close = tracked[sym]["first_prev_close"]
+                    first_pc = tracked[sym]["first_pc"]
                     first_ts = tracked[sym]["first_trigger_ts"]
                     
-                    total_pc = ((res["close"] - first_open) / first_open) * 100
+                    total_pc = ((res["close"] - first_prev_close) / first_prev_close) * 100
                     hours_elapsed = int((now_ts - first_ts) / 3600)
                     
                     res["alert_count"] = tracked[sym]["alert_count"]
@@ -203,8 +210,8 @@ def main():
                     tracked[sym] = {
                         "tracked_until": now_ts + (TRACK_HOURS * 3600),
                         "alert_count": 1,
-                        "first_candle_open": res["open"],
-                        "first_candle_pc": res["candle_pc"],
+                        "first_prev_close": res["prev_close"],
+                        "first_pc": res["pc"],
                         "first_trigger_ts": now_ts
                     }
                     print(f"[INFO] {sym} triggered 1st >= {MIN_CANDLE_PC}% candle. Tracking started for {TRACK_HOURS}h. No alert sent.")
@@ -216,7 +223,7 @@ def main():
                     lines.append(f"{time_str}")
                     lines.append(f"{c['sym']} {c['close']}")
                     lines.append(f"Total Gain: {c['total_pc']:+.2f}% | 24h: {c['change_24h']:+.2f}%")
-                    lines.append(f"1st Candle: {c['first_pc']:+.2f}% | Current: {c['candle_pc']:+.2f}%")
+                    lines.append(f"1st Candle: {c['first_pc']:+.2f}% | Current: {c['pc']:+.2f}%")
                     lines.append(f"Time elapsed: {c['hours_elapsed']}h")
                     lines.append(f"RSI: {c['rsi']:.1f} | Vol Ratio: {c['vol_ratio']:.2f}x")
                     lines.append("")
