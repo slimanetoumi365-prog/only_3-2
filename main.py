@@ -9,14 +9,14 @@ from urllib3.util.retry import Retry
 from datetime import timezone, timedelta
 
 # --- Configuration ---
-TELEGRAM_BOT_TOKEN = '8506264349:AAE2mayI7IdJOFob3_sZoBK0-ogs45sMIJQ'
+TELEGRAM_BOT_TOKEN = '8833328238:AAHD-03Tz7r2kCYxmHn4k62IGwafuv3tyjk'
 TELEGRAM_CHAT_ID = '1692583809'
 
 TRACKED_FILE = "tracked_coins.json"
 
 # --- SCAN REQUIREMENTS ---
 MIN_CANDLE_PC = 2.0  # Minimum 1h candle % change to trigger
-TRACK_HOURS = 24     # How many hours to track after the first trigger
+TRACK_HOURS = 6      # 6 hours is the sweet spot: allows for healthy consolidation (bull flag) 
 
 RAW_SYMBOLS = """
 0G 1000CAT 1000CHEEMS 1000SATS 1INCH 1MBABYDOGE 2Z AAVE ACE ACH ACM ACX ADA ADX AEVO AGLD AIGENSYN AI AIXBT ALGO ALICE ALLO ALPINE ALT AMP ANIME ANKR APE API3 APT ARB ARKM ARPA AR ASR ASTER ASTR ATM ATOM AT AUCTION AUDIO A AVA AVAX AVNT AXL AXS BABY BANANAS31 BANANA BAND BANK BARD BAR BAT BB BCH BEAMX BEL BERA BICO BIGTIME BIO BLUR BMT BNB BNSOL BNT BOME BONK BREV BROCCOLI714 C98 CAKE CATI CELO CELR CETUS CFG CFX CGPT CHIP CHR CHZ CITY CKB COMP COTI COW CRV CTK CTSI C CVC CVX CYBER DASH DCR DEXE DGB DIA DGB DOGE DOGS DOLO DOT DUSK DYDX DYM EDEN EDU EGLD EIGEN ENA ENJ ENSO ENS ETC EUL FET FF FIDA FIL FLOKI FLOW FLUX FOGO FORM FRAX F GALA GAS GENIUS GIGGLE GLMR GLM GMT GMX GNO GNS GPS GRT GUN G HAEDAL HBAR HEMI HIVE HMSTR HOLO HOME HOT HUMA HYPER ICP ICX ID ILV IMX INIT INJ IOST IOTA IOTX IO IQ JOE JST JTO JUP JUV KAIA KAITO KAT KAVA KERNEL KGST KITE KMNO KNC KSM LA LAYER LAZIO LDO LINEA LINK LISTA LPT LQTY LSK LTC LUMIA LUNA LUNC MAGIC MANA MANTA MANTRA MASK MAV MBL MEGA MEME METIS MET ME MINA MIRA MITO MMT MORPHO MOVR MTL MUBARAK NEAR NEIRO NEO NEWT NEXO NIGHT NIL NMR NOT NXPC OGN OG ONDO ONE ONG ONT OPEN OPG OPN OP ORCA ORDI OSMO PARTI PENDLE PENGU PEOPLE PEPE PHA PLUME PNUT POL POLYX POWR PROM PROVE PSG PUMP PUNDIX PYTH RAD RARE RAY RE RED RENDER REQ REZ RIF RLC ROBO RONIN ROSE RPL RSR RUNE RVN SAGA SAHARA SAND SANTOS SAPIEN SCR SC SEI SENT SFP SHELL SHIB SIGN SKL SKY SLP SNX SOL SOLV SOMI SOPH SPELL SPK SSV STEEM STG STRAX STRK STX SUI SUN SUPER S SUSHI SXT SYRUP TAO TFUEL THETA THE TIA TKO TNSR TON TOWNS TRB TREE TRUMP TRX TST TURBO TURTLE T TUT TWT UMA UNI USUAL U VANA VET VIRTUAL VTHO WAL WAXP WCT WIN WLD WLFI WOO W XAI XEC XLM XNO XPL XRP XTZ XVG XVS YB YFI YGG ZAMA ZBT ZEC ZEN ZIL ZKC ZKP ZK ZRO ZRX
@@ -97,9 +97,10 @@ def calculate_rsi_wilders(closes, period=14):
 
 def scan_symbol(sym: str):
     try:
+        # Fetch 200 candles for accurate RSI(14) calculation (matches Binance exactly)
         resp = session.get(
             "https://api.binance.com/api/v3/klines",
-            params={"symbol": sym, "interval": "1h", "limit": 30},
+            params={"symbol": sym, "interval": "1h", "limit": 200},
             timeout=5
         )
         resp.raise_for_status()
@@ -110,27 +111,25 @@ def scan_symbol(sym: str):
         # EXCLUDE currently forming candle - use only CLOSED candles
         closed = data[:-1]
         
-        # Get the last two CLOSED candles for percentage calculation
         last = closed[-1]
         prev = closed[-2]
         
-        # Extract close prices from CLOSED candles only
         close_p = float(last[4])
         prev_close = float(prev[4])
         volume = float(last[5])
         prev_volume = float(prev[5])
         
-        # Calculate percentage using CLOSED candle closes (same as original)
+        # Calculate percentage using CLOSED candle closes (Binance method)
         pc = ((close_p - prev_close) / prev_close) * 100
         
         if pc < MIN_CANDLE_PC:
             return None
         
-        # Calculate RSI using the SAME CLOSED candles (same timing as original)
+        # Calculate RSI using all 199 closed candles
         closes = [float(c[4]) for c in closed]
         rsi = calculate_rsi_wilders(closes, 14)
         
-        # Calculate 24h change using CLOSED candles
+        # Calculate 24h change
         if len(closed) >= 25:
             prev_24h_close = float(closed[-25][4])
             change_24h = ((close_p - prev_24h_close) / prev_24h_close) * 100 if prev_24h_close > 0 else 0
@@ -154,10 +153,11 @@ def scan_symbol(sym: str):
         return None
 
 def main():
-    print("[START] 1-Hour Momentum Tracker initialized...")
+    print("[START] 1-Hour Momentum Tracker (6h Window) initialized...")
     tracked = load_json(TRACKED_FILE)
     
     now_ts = time.time()
+    # Clean up expired tracked coins
     tracked = {sym: data for sym, data in tracked.items() if data.get("tracked_until", 0) > now_ts}
     save_json(TRACKED_FILE, tracked)
 
@@ -183,6 +183,7 @@ def main():
 
             print(f"[DONE] Found {len(results)} coins meeting criteria in {time.time() - t0:.1f}s")
 
+            # Clean up expired tracking dynamically
             tracked = {sym: data for sym, data in tracked.items() if data.get("tracked_until", 0) > now_ts}
 
             alerts_to_send = []
@@ -191,22 +192,28 @@ def main():
                 sym = res["sym"]
                 
                 if sym in tracked:
-                    tracked[sym]["alert_count"] += 1
-                    
-                    first_prev_close = tracked[sym]["first_prev_close"]
-                    first_pc = tracked[sym]["first_pc"]
-                    first_ts = tracked[sym]["first_trigger_ts"]
-                    
-                    total_pc = ((res["close"] - first_prev_close) / first_prev_close) * 100
-                    hours_elapsed = int((now_ts - first_ts) / 3600)
-                    
-                    res["alert_count"] = tracked[sym]["alert_count"]
-                    res["total_pc"] = total_pc
-                    res["first_pc"] = first_pc
-                    res["hours_elapsed"] = hours_elapsed
-                    
-                    alerts_to_send.append(res)
+                    # Only alert on the 2nd occurrence, then remove from tracking
+                    if tracked[sym]["alert_count"] == 1:
+                        tracked[sym]["alert_count"] += 1
+                        
+                        first_prev_close = tracked[sym]["first_prev_close"]
+                        first_pc = tracked[sym]["first_pc"]
+                        first_ts = tracked[sym]["first_trigger_ts"]
+                        
+                        total_pc = ((res["close"] - first_prev_close) / first_prev_close) * 100
+                        hours_elapsed = int((now_ts - first_ts) / 3600)
+                        
+                        res["alert_count"] = 2
+                        res["total_pc"] = total_pc
+                        res["first_pc"] = first_pc
+                        res["hours_elapsed"] = hours_elapsed
+                        
+                        alerts_to_send.append(res)
+                        
+                        # Remove from tracking after 2nd alert (no 3rd alert)
+                        del tracked[sym]
                 else:
+                    # First trigger: Start tracking, NO alert sent
                     tracked[sym] = {
                         "tracked_until": now_ts + (TRACK_HOURS * 3600),
                         "alert_count": 1,
@@ -214,7 +221,7 @@ def main():
                         "first_pc": res["pc"],
                         "first_trigger_ts": now_ts
                     }
-                    print(f"[INFO] {sym} triggered 1st >= {MIN_CANDLE_PC}% candle. Tracking started for {TRACK_HOURS}h. No alert sent.")
+                    print(f"[INFO] {sym} triggered 1st >= {MIN_CANDLE_PC}% candle. Tracking started for {TRACK_HOURS}h.")
 
             if alerts_to_send:
                 lines = []
