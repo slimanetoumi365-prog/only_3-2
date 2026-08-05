@@ -17,6 +17,7 @@ TRACKED_FILE = "tracked_coins.json"
 # --- SCAN REQUIREMENTS ---
 MIN_CANDLE_PC = 2.0  # Minimum 1h candle % change to trigger
 TRACK_HOURS = 8      # 8 hours: Perfect for catching a 1-2 hour consolidation (bull flag) before the next leg up
+MAX_24H_CHANGE = 3.0 # Only alert if 24h change is less than 3% (coin hasn't already pumped)
 
 RAW_SYMBOLS = """
 0G 1000CAT 1000CHEEMS 1000SATS 1INCH 1MBABYDOGE 2Z AAVE ACE ACH ACM ACX ADA ADX AEVO AGLD AIGENSYN AI AIXBT ALGO ALICE ALLO ALPINE ALT AMP ANIME ANKR APE API3 APT ARB ARKM ARPA AR ASR ASTER ASTR ATM ATOM AT AUCTION AUDIO A AVA AVAX AVNT AXL AXS BABY BANANAS31 BANANA BAND BANK BARD BAR BAT BB BCH BEAMX BEL BERA BICO BIGTIME BIO BLUR BMT BNB BNSOL BNT BOME BONK BREV BROCCOLI714 C98 CAKE CATI CELO CELR CETUS CFG CFX CGPT CHIP CHR CHZ CITY CKB COMP COTI COW CRV CTK CTSI C CVC CVX CYBER DASH DCR DEXE DGB DIA DGB DOGE DOGS DOLO DOT DUSK DYDX DYM EDEN EDU EGLD EIGEN ENA ENJ ENSO ENS ETC EUL FET FF FIDA FIL FLOKI FLOW FLUX FOGO FORM FRAX F GALA GAS GENIUS GIGGLE GLMR GLM GMT GMX GNO GNS GPS GRT GUN G HAEDAL HBAR HEMI HIVE HMSTR HOLO HOME HOT HUMA HYPER ICP ICX ID ILV IMX INIT INJ IOST IOTA IOTX IO IQ JOE JST JTO JUP JUV KAIA KAITO KAT KAVA KERNEL KGST KITE KMNO KNC KSM LA LAYER LAZIO LDO LINEA LINK LISTA LPT LQTY LSK LTC LUMIA LUNA LUNC MAGIC MANA MANTA MANTRA MASK MAV MBL MEGA MEME METIS MET ME MINA MIRA MITO MMT MORPHO MOVR MTL MUBARAK NEAR NEIRO NEO NEWT NEXO NIGHT NIL NMR NOT NXPC OGN OG ONDO ONE ONG ONT OPEN OPG OPN OP ORCA ORDI OSMO PARTI PENDLE PENGU PEOPLE PEPE PHA PLUME PNUT POL POLYX POWR PROM PROVE PSG PUMP PUNDIX PYTH RAD RARE RAY RE RED RENDER REQ REZ RIF RLC ROBO RONIN ROSE RPL RSR RUNE RVN SAGA SAHARA SAND SANTOS SAPIEN SCR SC SEI SENT SFP SHELL SHIB SIGN SKL SKY SLP SNX SOL SOLV SOMI SOPH SPELL SPK SSV STEEM STG STRAX STRK STX SUI SUN SUPER S SUSHI SXT SYRUP TAO TFUEL THETA THE TIA TKO TNSR TON TOWNS TRB TREE TRUMP TRX TST TURBO TURTLE T TUT TWT UMA UNI USUAL U VANA VET VIRTUAL VTHO WAL WAXP WCT WIN WLD WLFI WOO W XAI XEC XLM XNO XPL XRP XTZ XVG XVS YB YFI YGG ZAMA ZBT ZEC ZEN ZIL ZKC ZKP ZK ZRO ZRX
@@ -153,7 +154,7 @@ def scan_symbol(sym: str):
         return None
 
 def main():
-    print("[START] 1-Hour Momentum Tracker (8h Window) initialized...")
+    print("[START] 1-Hour Momentum Tracker (8h Window, 24h < 3%, Rolling Tracking) initialized...")
     tracked = load_json(TRACKED_FILE)
     
     now_ts = time.time()
@@ -192,10 +193,10 @@ def main():
                 sym = res["sym"]
                 
                 if sym in tracked:
-                    # Only alert on the 2nd occurrence, then remove from tracking
-                    if tracked[sym]["alert_count"] == 1:
-                        tracked[sym]["alert_count"] += 1
-                        
+                    # This is the 2nd (or 3rd, 4th...) +2% candle
+                    # Check if 24h change is less than 3%
+                    if res["change_24h"] < MAX_24H_CHANGE:
+                        # Send alert
                         first_prev_close = tracked[sym]["first_prev_close"]
                         first_pc = tracked[sym]["first_pc"]
                         first_ts = tracked[sym]["first_trigger_ts"]
@@ -203,15 +204,34 @@ def main():
                         total_pc = ((res["close"] - first_prev_close) / first_prev_close) * 100
                         hours_elapsed = int((now_ts - first_ts) / 3600)
                         
-                        res["alert_count"] = 2
+                        res["alert_count"] = tracked[sym]["alert_count"] + 1
                         res["total_pc"] = total_pc
                         res["first_pc"] = first_pc
                         res["hours_elapsed"] = hours_elapsed
                         
                         alerts_to_send.append(res)
                         
-                        # Remove from tracking after 2nd alert (no 3rd alert)
-                        del tracked[sym]
+                        # RESET tracking: make this candle the new "first"
+                        tracked[sym] = {
+                            "tracked_until": now_ts + (TRACK_HOURS * 3600),
+                            "alert_count": 1,
+                            "first_prev_close": res["prev_close"],
+                            "first_pc": res["pc"],
+                            "first_trigger_ts": now_ts
+                        }
+                        print(f"[INFO] {sym} triggered {res['alert_count']}th >= {MIN_CANDLE_PC}% candle. Alert sent. Tracking reset for next {TRACK_HOURS}h.")
+                    else:
+                        # 24h change >= 3%, don't send alert, but still reset tracking
+                        print(f"[FILTERED] {sym} 24h change is {res['change_24h']:.2f}% (>= {MAX_24H_CHANGE}%), no alert sent. Tracking reset.")
+                        
+                        # RESET tracking: make this candle the new "first"
+                        tracked[sym] = {
+                            "tracked_until": now_ts + (TRACK_HOURS * 3600),
+                            "alert_count": 1,
+                            "first_prev_close": res["prev_close"],
+                            "first_pc": res["pc"],
+                            "first_trigger_ts": now_ts
+                        }
                 else:
                     # First trigger: Start tracking, NO alert sent
                     tracked[sym] = {
